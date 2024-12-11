@@ -283,8 +283,8 @@
             clearMarkers();
 
             const url = keyword
-                ? `http://127.0.0.1:5000/search_reviews?keyword=${encodeURIComponent(keyword)}`
-                : `http://127.0.0.1:5000/markers`;
+                ? `http://13.125.85.168:5000/search_reviews?keyword=${encodeURIComponent(keyword)}`
+                : `http://13.125.85.168:5000/markers`;
 
             fetch(url)
                 .then(response => response.json())
