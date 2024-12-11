@@ -15,7 +15,7 @@ load_dotenv(dotenv_path = '.env')
 
 db_config = {
     "host": "mysql-container",
-    "port": 3307,
+    "port": 3306,
     "user": "root",
     "password": "1234",
     "database": "project"
