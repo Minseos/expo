@@ -14,7 +14,7 @@ DEFAULT_MENU_PHOTO = "https://via.placeholder.com/150"
 load_dotenv(dotenv_path = '.env')
 
 db_config = {
-    "host": "13.125.85.168",
+    "host": "mysql-container",
     "port": 3307,
     "user": "root",
     "password": "1234",
