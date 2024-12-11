@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Kakao 지도와 키워드 검색</title>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4218BPBW39"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-4218BPBW39');
+    </script>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 80%;
+        }
+        #categories {
+            height: 10%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ccc;
+        }
+        .category-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            background-color: #ffffff;
+            box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .category-button.active {
+            background-color: #ffae00;
+            color: #ffffff;
+        }
+        #info-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border-top: 1px solid #ccc;
+            padding: 10px;
+            display: none;
+            z-index: 1000;
+        }
+        #info-panel img {
+            width: 100px;
+            height: 100px;
+            margin-right: 10px;
+            vertical-align: middle;
+            border-radius: 5px;
+        }
+        #info-panel .info-content {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        #info-panel .info-content h4 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #info-panel .info-content p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #000;
+        }
+        #info-panel button {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ffae00;
+            color: white;
+            cursor: pointer;
+        }
+        #search-section {
+            padding: 10px;
+            text-align: center;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <div id="categories">
+        <button class="category-button active" data-category="전체">전체</button>
+        <button class="category-button" data-category="고기/구이">고기/구이</button>
+        <button class="category-button" data-category="한식">한식</button>
+        <button class="category-button" data-category="중식">중식</button>
+        <button class="category-button" data-category="일식">일식</button>
+        <button class="category-button" data-category="양식">양식</button>
+        <button class="category-button" data-category="분식">분식</button>
+        <button class="category-button" data-category="카페/디저트">카페/디저트</button>
+        <button class="category-button" data-category="치킨">치킨</button>
+        <button class="category-button" data-category="해물">해물</button>
+        <button class="category-button" data-category="요리주점">요리주점</button>
+        <button class="category-button" data-category="다이어트">다이어트</button>
+    </div>
+    <div id="search-section">
+        <input type="text" id="keyword-search" placeholder="리뷰 키워드 검색..." style="width: 70%; padding: 8px; font-size: 14px;">
+        <button onclick="searchByKeyword()" style="padding: 8px; font-size: 14px;">검색</button>
+        <select id="price-range" style="padding: 8px; font-size: 14px; margin-left: 10px;">
+            <option value="">가격대 선택</option>
+            <option value="1-10000">₩1~10,000</option>
+            <option value="10000-20000">₩10,000~20,000</option>
+            <option value="20000-30000">₩20,000~30,000</option>
+            <option value="30000-40000">₩30,000~40,000</option>
+            <option value="40000-50000">₩40,000~50,000</option>
+            <option value="100000-">₩100,000 이상</option>
+        </select>
+    </div>
+    <div id="map"></div>
+    <div id="info-panel">
+        <img id="info-image" src="https://via.placeholder.com/50" alt="가게 이미지">
+        <div class="info-content">
+            <h4 id="info-title">가게 이름</h4>
+            <p id="info-address">가게 주소</p>
+            <p id="info-reviews" style="display: none;">키워드 리뷰 개수: </p>
+            <button id="view-reviews">자세히 보기</button>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=63e3067448f3fd1670dd681def99e897&libraries=services"></script>
+    <script>
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(37.489668, 127.032852),
+            level: 3
+        };
+        var map = new kakao.maps.Map(container, options);
+        var geocoder = new kakao.maps.services.Geocoder();
+        var markers = {};
+        var categoryMarkers = {};
+        var openInfoWindow = null;
+        const offsets = [
+            { x: 0.00005, y: 0.00005 },
+            { x: -0.00005, y: 0.00005 },
+            { x: 0.00005, y: -0.00005 },
+            { x: -0.00005, y: -0.00005 }
+        ];
+        let offsetIndex = 0;
+        var circle = new kakao.maps.Circle({
+            center: new kakao.maps.LatLng(37.489668, 127.032852),
+            radius: 210,
+            strokeWeight: 5,
+            strokeColor: '#FFAE00',
+            strokeOpacity: 0.8,
+            strokeStyle: 'dashed',
+            fillColor: '#FFD2A8',
+            fillOpacity: 0.5
+        });
+        circle.setMap(map);
+
+        function cleanPhotoUrl(photoUrl) {
+            if (photoUrl.startsWith("gs://")) {
+                const bucketName = "final-project-8f802.firebasestorage.app";
+                const path = photoUrl.replace(`gs://${bucketName}/`, "");
+                const encodedPath = encodeURIComponent(path);
+                return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
+            }
+            return photoUrl || "https://via.placeholder.com/50";
+        }
+
+        const categoryMapping = {
+            '한식': ['한식', '곰탕,설렁탕', '돼지고기구이'],
+            '중식': ['중식당'],
+            '일식': ['일식당', '생선회', '초밥,롤'],
+            '양식': ['이탈리아음식'],
+            '분식': ['분식', '김밥'],
+            '카페/디저트': ['카페', '베이커리'],
+            '치킨': ['치킨,닭강정'],
+            '해물': ['매운탕,해물탕'],
+            '요리주점': ['맥주,호프'],
+            '다이어트': ['샌드위치']
+        };
+
+        function getMappedCategory(category) {
+            for (const [key, values] of Object.entries(categoryMapping)) {
+                if (values.includes(category)) {
+                    return key;
+                }
+            }
+            return '기타';
+        }
+
+        function addMarker(position, title, address, category, storeId, menuPhotoUrl, keywordCount) {
+            if (!storeId || markers[storeId]) {
+                return;
+            }
+            position = new kakao.maps.LatLng(
+                position.getLat() + offsets[offsetIndex].y,
+                position.getLng() + offsets[offsetIndex].x
+            );
+            offsetIndex = (offsetIndex + 1) % offsets.length;
+
+            const displayTitle = keywordCount > 0 ? `${title} (${keywordCount})` : title;
+
+            const marker = new kakao.maps.Marker({
+                position: position,
+                map: map
+            });
+
+            const infoContent = `
+                <div style="padding:5px;font-size:14px;">
+                    <strong>${displayTitle}</strong><br>${address}
+                </div>`;
+            const infoWindow = new kakao.maps.InfoWindow({ content: infoContent });
+
+            kakao.maps.event.addListener(marker, "click", function () {
+                gtag('event', 'marker_click', {
+                    'event_category': 'Map Interaction',
+                    'event_label': title,
+                    'value': 1
+                });
+                toggleInfoWindow(marker, infoWindow);
+                showInfoPanel(title, address, storeId, menuPhotoUrl || "https://via.placeholder.com/50", keywordCount);
+            });
+
+            if (!categoryMarkers[category]) {
+                categoryMarkers[category] = [];
+            }
+            categoryMarkers[category].push(marker);
+            markers[storeId] = marker;
+        }
+
+        function toggleInfoWindow(marker, infoWindow) {
+            if (openInfoWindow && openInfoWindow !== infoWindow) {
+                openInfoWindow.close();
+            }
+            if (infoWindow.getMap()) {
+                infoWindow.close();
+                openInfoWindow = null;
+            } else {
+                infoWindow.open(map, marker);
+                openInfoWindow = infoWindow;
+            }
+        }
+
+        function showInfoPanel(title, address, storeId, imageUrl, reviewCount) {
+            document.getElementById('info-title').textContent = title;
+            document.getElementById('info-address').textContent = address;
+            document.getElementById('info-image').src = cleanPhotoUrl(imageUrl);
+
+            
+
+            if (reviewCount && reviewCount > 0) {
+                document.getElementById('info-reviews').textContent = `키워드 리뷰 개수: ${reviewCount}개`;
+                document.getElementById('info-reviews').style.display = 'block';
+            } else {
+                document.getElementById('info-reviews').style.display = 'none';
+            }
+
+            document.getElementById('view-reviews').onclick = function () {
+                const keyword = document.getElementById('keyword-search').value.trim(); // 현재 검색 키워드 가져오기
+                const queryParams = new URLSearchParams({ storeId: storeId });
+                if (keyword) {
+                    queryParams.append('keyword', keyword); // 키워드 추가
+                }
+                window.open(`/reviews.html?${queryParams.toString()}`, '_blank');
+            };
+
+            document.getElementById('info-panel').style.display = 'block';
+        }
+
+        function clearMarkers() {
+            Object.keys(markers).forEach(storeId => {
+                if (markers[storeId]) markers[storeId].setMap(null);
+            });
+            markers = {};
+            categoryMarkers = {};
+        }
+
+        function fetchMarkers(keyword = null) {
+            clearMarkers();
+
+            const url = keyword
+                ? `http://127.0.0.1:5000/search_reviews?keyword=${encodeURIComponent(keyword)}`
+                : `http://127.0.0.1:5000/markers`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const meatStoreIds = [10, 15, 19, 43];
+                    (data.search_results || data).forEach(location => {
+                        const cleanedPhotoUrl = cleanPhotoUrl(location.menu_photo);
+                        geocoder.addressSearch(location.address, function (result, status) {
+                            if (status === kakao.maps.services.Status.OK) {
+                                const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                                const category = meatStoreIds.includes(location.store_id)
+                                    ? "고기/구이"
+                                    : getMappedCategory(location.category);
+                                addMarker(coords, location.name, location.address, category, location.store_id, cleanedPhotoUrl, location.keyword_count);
+                            }
+                        });
+                    });
+                })
+                .catch(error => {
+                    alert("데이터를 불러오는 데 실패했습니다. 네트워크 상태를 확인해주세요.");
+                });
+        }
+
+        function filterByCategory(category) {
+            Object.keys(markers).forEach(storeId => markers[storeId].setMap(null));
+            if (category === "전체") {
+                Object.keys(categoryMarkers).forEach(mappedCategory => {
+                    categoryMarkers[mappedCategory].forEach(marker => marker.setMap(map));
+                });
+            } else if (categoryMarkers[category]) {
+                categoryMarkers[category].forEach(marker => marker.setMap(map));
+            }
+        }
+
+        fetchMarkers();
+
+        document.querySelectorAll(".category-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const category = this.dataset.category;
+                gtag('event', 'category_click', {
+                    'event_category': 'Category Selection',
+                    'event_label': category,
+                    'value': 1
+                });
+                // 기존 기능
+                document.querySelector(".category-button.active").classList.remove("active");
+                this.classList.add("active");
+                filterByCategory(category);
+            });
+        });
+
+
+        function searchByKeyword() {
+            const keyword = document.getElementById('keyword-search').value.trim();
+            gtag('event', 'search', {
+                'event_category': 'Keyword Search',
+                'event_label': keyword,
+                'value': 1
+            });
+            fetchMarkers(keyword || null);
+        }
+
+    </script>
+</body>
+</html>
