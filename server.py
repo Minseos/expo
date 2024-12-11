@@ -13,29 +13,13 @@ DEFAULT_MENU_PHOTO = "https://via.placeholder.com/150"
 
 load_dotenv(dotenv_path = '.env')
 
-# MySQL 연결 정보
-# db_config = {
-#     "host": os.getenv("host").split(":")[0],
-#     "port": int(os.getenv("host").split(":")[1]) if ":" in os.getenv("host") else 3306,
-#     "user": os.getenv("id"),
-#     "password": os.getenv("pw"),
-#     "database": os.getenv("database")
-# }
-# db_config = {
-#     "host": os.getenv("MYSQL_HOST", "127.0.0.1"),  
-#     "port": int(os.getenv("MYSQL_PORT", 3307)),
-#     "user": os.getenv("MYSQL_USER"),  
-#     "password": os.getenv("MYSQL_PASSWORD"),  
-#     "database": os.getenv("MYSQL_DATABASE")  
-# }
 db_config = {
-    "host": "mysql-container",
-    "port": 3306,
+    "host": "13.125.85.168",
+    "port": 3307,
     "user": "root",
     "password": "1234",
     "database": "project"
 }
-
 
 #루트 경로에서 kakao.html 렌더링
 @app.route('/')
