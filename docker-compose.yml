@@ -10,6 +10,7 @@ services:
       MYSQL_USER: root
       MYSQL_PASSWORD: 1234
       MYSQL_DATABASE: project
+      MYSQL_PORT: 3306  # 내부 컨테이너 간 통신은 기본 포트를 사용
     depends_on:
       - mysql-db
 
@@ -20,6 +21,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: project
+      MYSQL_ROOT_HOST: "%"  # 외부에서 MySQL에 접속 가능하도록 설정
     ports:
       - "3307:3306"
     volumes:
