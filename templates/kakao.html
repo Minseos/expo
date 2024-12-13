@@ -5,8 +5,8 @@
     <title>zzinview</title>
     <meta property="og:title" content="zzinview">
     <meta property="og:description" content="주변 가게 정보와 키워드 리뷰를 검색하세요!">
-    <meta property="og:image" content="http://13.125.85.168:5000/static/zzinview.png">
-    <meta property="og:url" content="http://13.125.85.168:5000/">
+    <meta property="og:image" content="http://13.125.85.168/static/zzinview.png">
+    <meta property="og:url" content="http://13.125.85.168/">
     <meta property="og:type" content="website">
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4218BPBW39"></script>
@@ -288,8 +288,8 @@
             clearMarkers();
 
             const url = keyword
-                ? `http://13.125.85.168:5000/search_reviews?keyword=${encodeURIComponent(keyword)}`
-                : `http://13.125.85.168:5000/markers`;
+                ? `http://13.125.85.168/search_reviews?keyword=${encodeURIComponent(keyword)}`
+                : `http://13.125.85.168/markers`;
 
             fetch(url)
                 .then(response => response.json())
