@@ -14,12 +14,13 @@ DEFAULT_MENU_PHOTO = "https://via.placeholder.com/150"
 load_dotenv(dotenv_path = '.env')
 
 db_config = {
-    "host": "mysql-container",
-    "port": 3306,
-    "user": "root",
-    "password": "1234",
-    "database": "project"
+    "host": os.getenv("MYSQL_HOST", "13.125.85.168"),
+    "port": int(os.getenv("MYSQL_PORT", 3306)),
+    "user": os.getenv("MYSQL_USER", "root"),
+    "password": os.getenv("MYSQL_PASSWORD", "1234"),
+    "database": os.getenv("MYSQL_DATABASE", "project"),
 }
+
 
 #루트 경로에서 kakao.html 렌더링
 @app.route('/')
