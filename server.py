@@ -139,14 +139,13 @@ def get_reviews(store_id):
 @app.route('/search_reviews', methods=['GET'])
 def search_reviews():
     keyword = request.args.get('keyword', '').strip()
-
-    if not keyword:
-        return jsonify({"search_results": []})
+    price_range = request.args.get('price_range', '').strip()  # 가격대 파라미터 추가
 
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
 
+        # 기본 쿼리 작성
         query = """
             SELECT stores.store_id, stores.store_name AS name, stores.address, stores.category,
                    COUNT(reviews.review_id) AS keyword_count,
@@ -154,10 +153,32 @@ def search_reviews():
             FROM reviews
             JOIN stores ON stores.store_id = reviews.store_id
             LEFT JOIN analysis ON stores.store_id = analysis.store_id
-            WHERE reviews.review_text LIKE %s
+            WHERE 1=1
+        """
+        params = [DEFAULT_MENU_PHOTO]
+
+        # 키워드 필터 추가
+        if keyword:
+            query += " AND reviews.review_text LIKE %s"
+            params.append(f"%{keyword}%")
+
+        # 가격대 필터 추가
+        if price_range:
+            price_parts = price_range.split('-')
+            if len(price_parts) == 2:  # 가격 범위가 주어진 경우
+                query += " AND stores.price_range BETWEEN %s AND %s"
+                params.extend(price_parts)
+            elif price_parts[0]:  # 최소값만 주어진 경우 (예: ₩100,000 이상)
+                query += " AND stores.price_range >= %s"
+                params.append(price_parts[0])
+
+        # 그룹화 및 정렬
+        query += """
             GROUP BY stores.store_id, stores.store_name, stores.address, stores.category, analysis.menu_photo
         """
-        cursor.execute(query, (DEFAULT_MENU_PHOTO, f"%{keyword}%"))
+
+        # 쿼리 실행
+        cursor.execute(query, tuple(params))
         results = cursor.fetchall()
 
         for result in results:
@@ -172,6 +193,7 @@ def search_reviews():
             cursor.close()
         if conn:
             conn.close()
+
 
 if __name__ == '__main__':  
     app.run(host='0.0.0.0', debug=True)

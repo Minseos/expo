@@ -344,13 +344,39 @@
 
         function searchByKeyword() {
             const keyword = document.getElementById('keyword-search').value.trim();
+            const priceRange = document.getElementById('price-range').value; // 가격대 선택값 가져오기
+
             gtag('event', 'search', {
                 'event_category': 'Keyword Search',
                 'event_label': keyword,
                 'value': 1
             });
-            fetchMarkers(keyword || null);
+
+            // 쿼리 파라미터 생성
+            const queryParams = new URLSearchParams();
+            if (keyword) queryParams.append('keyword', keyword);
+            if (priceRange) queryParams.append('price_range', priceRange);
+
+            // fetchMarkers 호출 시 URL에 쿼리 파라미터 추가
+            fetch(`http://13.125.85.168/search_reviews?${queryParams.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    clearMarkers(); // 기존 마커 제거
+                    data.search_results.forEach(location => {
+                        const cleanedPhotoUrl = cleanPhotoUrl(location.menu_photo);
+                        geocoder.addressSearch(location.address, function (result, status) {
+                            if (status === kakao.maps.services.Status.OK) {
+                                const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                                addMarker(coords, location.name, location.address, location.category, location.store_id, cleanedPhotoUrl, location.keyword_count);
+                            }
+                        });
+                    });
+                })
+                .catch(error => {
+                    alert("데이터를 불러오는 데 실패했습니다. 네트워크 상태를 확인해주세요.");
+                });
         }
+
 
     </script>
 </body>
