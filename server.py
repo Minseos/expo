@@ -40,11 +40,13 @@ def convert_gs_to_http(gs_url):
 
 @app.route('/markers', methods=['GET'])
 def get_markers():
-    cursor, conn = None, None  # cursor와 conn 초기화
+    cursor, conn = None, None
     try:
+        print("Connecting to MySQL...")
         conn = mysql.connector.connect(**db_config)
+        print("Connected to MySQL successfully.")
+        
         cursor = conn.cursor(dictionary=True)
-
         query = """
             SELECT s.store_id, s.store_name AS name, s.address, 
                 CASE 
@@ -55,8 +57,10 @@ def get_markers():
             FROM stores s
             LEFT JOIN analysis a ON s.store_id = a.store_id
         """
+        print("Executing query...")
         cursor.execute(query)
         results = cursor.fetchall()
+        print(f"Query executed successfully. Results: {results}")
 
         for result in results:
             result['menu_photo'] = convert_gs_to_http(result['menu_photo'])
@@ -70,6 +74,7 @@ def get_markers():
             cursor.close()
         if conn:
             conn.close()
+
 
 # reviews.html 파일 렌더링을 위한 라우트 추가
 @app.route('/reviews.html')
