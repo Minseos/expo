@@ -314,14 +314,21 @@
         }
 
         function filterByCategory(category) {
+            // 모든 마커를 맵에서 제거
             Object.keys(markers).forEach(storeId => markers[storeId].setMap(null));
             if (category === "전체") {
+                // 전체 카테고리일 경우 모든 마커를 표시
                 Object.keys(categoryMarkers).forEach(mappedCategory => {
                     categoryMarkers[mappedCategory].forEach(marker => marker.setMap(map));
                 });
             } else if (categoryMarkers[category]) {
+                // 선택된 카테고리만 표시
                 categoryMarkers[category].forEach(marker => marker.setMap(map));
             }
+
+            // **정보 패널 초기화**
+            document.getElementById('info-panel').style.display = 'none'; // 패널 숨기기
+            openInfoWindow = null; // 열린 정보창 초기화
         }
 
         fetchMarkers();
@@ -334,9 +341,12 @@
                     'event_label': category,
                     'value': 1
                 });
-                // 기존 기능
+
+                // 기존 활성 상태 제거 및 새로운 카테고리 활성화
                 document.querySelector(".category-button.active").classList.remove("active");
                 this.classList.add("active");
+
+                // 필터 적용 및 정보 패널 초기화
                 filterByCategory(category);
             });
         });
