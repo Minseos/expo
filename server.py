@@ -49,11 +49,8 @@ def get_markers():
         cursor = conn.cursor(dictionary=True)
         query = """
             SELECT s.store_id, s.store_name AS name, s.address, 
-                CASE 
-                    WHEN s.store_id IN (10, 15, 19, 43) THEN '고기/구이'
-                    ELSE s.category
-                END AS category,
-                COALESCE(a.menu_photo, 'https://via.placeholder.com/150') AS menu_photo
+                   s.category,
+                   COALESCE(a.menu_photo, %s) AS menu_photo
             FROM stores s
             LEFT JOIN analysis a ON s.store_id = a.store_id
         """
