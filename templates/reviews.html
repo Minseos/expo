@@ -305,7 +305,6 @@
                 .then(data => {
                     if (data.message) {
                         document.getElementById('reviews-container').innerHTML = `<p>${data.message}</p>`;
-                        console.log(data); // API 응답 확인
                         return;
                     }
 
@@ -322,16 +321,6 @@
 
                     const reviews = data.reviews;
                     renderReviews(reviews);
-
-                    // Firebase gs:// URL을 https:// 형식으로 변환하는 함수
-                    const convertToHttpUrl = (url) => {
-                        if (!url) return "https://via.placeholder.com/150"; // 값이 없으면 기본 이미지
-                        if (url.startsWith("gs://")) {
-                            return url.replace("gs://", "https://storage.googleapis.com/");
-                        }
-                        return url; // 이미 변환된 URL은 그대로 사용
-                    };
-
 
                     // URL에서 전달받은 keyword로 필터링
                     if (searchKeyword) {
@@ -383,11 +372,11 @@
                     // 분석 리포트 렌더링
                     const analysisReportContent = document.getElementById('analysis-report-content');
                     const imagePaths = [
-                        convertToHttpUrl(data.raderchart), // 레이더 차트
-                        convertToHttpUrl(data.wordcloud),  // 워드클라우드
-                        convertToHttpUrl(data.distribution), // 분포도
-                        convertToHttpUrl(data.negative_ratio), // 부정 리뷰 비율
-                        convertToHttpUrl(data.keyword), // 키워드 차트
+                        `5_RadarChart/${store_id}_radar_chart.png`,
+                        `1_WordCloud/${store_id}_wordcloud.png`,
+                        `3_Distribution/${store_id}__Distribution.png`,
+                        `2_NegativeReview_Ratio/${store_id}_리뷰_비율.png`,
+                        `4_Keyword/${store_id}_keyword.png`,
                     ];
 
                     const reportContainer = document.createElement('div');
@@ -406,7 +395,7 @@
 
                     imagePaths.forEach((path, index) => {
                         const img = document.createElement('img');
-                        img.src = convertToHttpUrl(data.distribution);
+                        img.src = getFirebaseImageUrl("final-project-8f802.firebasestorage.app", path);
                         img.alt = "분석 이미지";
                         img.style.width = "50%";
                         img.style.marginBottom = "15px";
