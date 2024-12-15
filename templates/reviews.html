@@ -331,9 +331,6 @@
                     : getFirebaseImageUrl("final-project-8f802.firebasestorage.app", `3_Distribution/${filePath}`);
             }
 
-            // 예시 사용
-            const distributionImageUrl = getDistributionFileUrl(storeCategory);
-            console.log(distributionImageUrl);
 
             fetch(`http://13.125.85.168/reviews/${store_id}`)
                 .then(response => response.json())
@@ -357,6 +354,13 @@
 
                     const reviews = data.reviews;
                     renderReviews(reviews);
+
+                     // storeCategory 설정 (예: API에서 반환되는 데이터로 설정)
+                    const storeCategory = data.store_category || '기타'; // 예시: data.store_category가 없다면 '기타'로 설정
+
+                    // 분포도 이미지 URL 가져오기
+                    const distributionImageUrl = getDistributionFileUrl(storeCategory);
+                    console.log("분포도 이미지 URL:", distributionImageUrl);
 
                     // URL에서 전달받은 keyword로 필터링
                     if (searchKeyword) {
