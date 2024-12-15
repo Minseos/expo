@@ -300,6 +300,41 @@
                 renderReviews(filteredReviews);
             }
 
+            const categoryMapping = {
+                '한식': ['한식', '곰탕,설렁탕', '돼지고기구이', '낙지요리', '백반,가정식', '육류,고기요리', '순대,순댓국', '찌개,전골', '정육식당', '장어,먹장어요리', '족발,보쌈', '한식뷔페', '닭요리', '국수'],
+                '중식': ['중식당'],
+                '일식': ['일식당', '생선회', '초밥,롤', '돈가스'],
+                '양식': ['이탈리아음식', '햄버거'],
+                '카페/디저트': ['카페', '카페,디저트', '베이커리'],
+                '분식': ['분식', '종합분식', '김밥'],
+                '치킨': ['치킨,닭강정'],
+                '해물': ['게요리', '매운탕,해물탕', '해물,생선요리'],
+                '요리주점': ['요리주점', '바(BAR)', '맥주,호프', '포장마차'],
+                '다이어트': ['샌드위치']
+            };
+
+            const distributionFiles = {
+                "한식": "korean_weighted_rating_vs_price_range_actual_values.png",
+                "중식": "chinese_weighted_rating_vs_price_range.png",
+                "일식": "japanese_weighted_rating_vs_price_range.png",
+                "양식": "western_weighted_rating_vs_price_range.png",
+                "카페/디저트": "cafe_weighted_rating_vs_price_range.png",
+            };
+
+            // 기본 이미지 설정
+            const defaultImage = "https://via.placeholder.com/150";
+
+            function getDistributionFileUrl(storeCategory) {
+                const filePath = distributionFiles[storeCategory] || defaultImage;
+                return filePath === defaultImage
+                    ? defaultImage
+                    : getFirebaseImageUrl("final-project-8f802.firebasestorage.app", `3_Distribution/${filePath}`);
+            }
+
+            // 예시 사용
+            const distributionImageUrl = getDistributionFileUrl(storeCategory);
+            console.log(distributionImageUrl);
+
             fetch(`http://13.125.85.168/reviews/${store_id}`)
                 .then(response => response.json())
                 .then(data => {
@@ -307,6 +342,7 @@
                         document.getElementById('reviews-container').innerHTML = `<p>${data.message}</p>`;
                         return;
                     }
+
 
                     // 가게 정보 출력
                     document.getElementById('store-name').textContent = data.store_name;
@@ -369,12 +405,13 @@
                         filterReviews(reviews);
                     });
 
+
                     // 분석 리포트 렌더링
                     const analysisReportContent = document.getElementById('analysis-report-content');
                     const imagePaths = [
                         `5_RadarChart/${store_id}_radar_chart.png`,
                         `1_WordCloud/${store_id}_wordcloud.png`,
-                        `3_Distribution/weighted_rating_vs_price.png`,
+                        `3_Distribution/${getDistributionFile(storeCategory)}`,
                         `2_NegativeReview_Ratio/${store_id}_리뷰_비율.png`,
                         `4_Keyword/${store_id}_keyword.png`,
                     ];
