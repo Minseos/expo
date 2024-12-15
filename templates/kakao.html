@@ -292,26 +292,35 @@
                 ? `http://13.125.85.168/search_reviews?keyword=${encodeURIComponent(keyword)}`
                 : `http://13.125.85.168/markers`;
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    const meatStoreIds = [10, 15, 19, 43];
-                    (data.search_results || data).forEach(location => {
-                        const cleanedPhotoUrl = cleanPhotoUrl(location.menu_photo);
-                        geocoder.addressSearch(location.address, function (result, status) {
-                            if (status === kakao.maps.services.Status.OK) {
-                                const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                                const category = meatStoreIds.includes(location.store_id)
-                                    ? "고기/구이"
-                                    : getMappedCategory(location.category);
-                                addMarker(coords, location.name, location.address, category, location.store_id, cleanedPhotoUrl, location.keyword_count);
-                            }
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        (data.search_results || data).forEach(location => {
+                            const cleanedPhotoUrl = cleanPhotoUrl(location.menu_photo);
+                            geocoder.addressSearch(location.address, function (result, status) {
+                                if (status === kakao.maps.services.Status.OK) {
+                                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+
+                                    // 백엔드에서 처리된 카테고리를 그대로 사용
+                                    const category = getMappedCategory(location.category);
+
+                                    addMarker(
+                                        coords,
+                                        location.name,
+                                        location.address,
+                                        category,
+                                        location.store_id,
+                                        cleanedPhotoUrl,
+                                        location.keyword_count
+                                    );
+                                }
+                            });
                         });
+                    })
+                    .catch(error => {
+                        alert("데이터를 불러오는 데 실패했습니다. 네트워크 상태를 확인해주세요.");
                     });
-                })
-                .catch(error => {
-                    alert("데이터를 불러오는 데 실패했습니다. 네트워크 상태를 확인해주세요.");
-                });
+
         }
 
         function filterByCategory(category) {
