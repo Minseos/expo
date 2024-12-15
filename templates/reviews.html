@@ -305,6 +305,7 @@
                 .then(data => {
                     if (data.message) {
                         document.getElementById('reviews-container').innerHTML = `<p>${data.message}</p>`;
+                        console.log(data); // API 응답 확인
                         return;
                     }
 
@@ -402,7 +403,7 @@
 
                     imagePaths.forEach((path, index) => {
                         const img = document.createElement('img');
-                        img.src = convertToHttpUrl(path);
+                        img.src = convertToHttpUrl(data.distribution);
                         img.alt = "분석 이미지";
                         img.style.width = "50%";
                         img.style.marginBottom = "15px";
