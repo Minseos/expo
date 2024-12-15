@@ -325,7 +325,9 @@
 
                     // Firebase gs:// URL을 https:// 형식으로 변환하는 함수
                     const convertToHttpUrl = (gsUrl) => {
-                        if (!gsUrl) return "https://via.placeholder.com/150"; // 기본 이미지 설정
+                        if (!gsUrl || !gsUrl.startsWith("gs://")) {
+                            return "https://via.placeholder.com/150"; // 기본 이미지 설정
+                        }
                         return gsUrl.replace("gs://", "https://storage.googleapis.com/");
                     };
 
@@ -380,11 +382,11 @@
                     // 분석 리포트 렌더링
                     const analysisReportContent = document.getElementById('analysis-report-content');
                     const imagePaths = [
-                        `5_RadarChart/${store_id}_radar_chart.png`,
-                        `1_WordCloud/${store_id}_wordcloud.png`,
-                        convertToHttpUrl(data.distribution), // 데이터베이스의 distribution 값 사용
-                        `2_NegativeReview_Ratio/${store_id}_리뷰_비율.png`,
-                        `4_Keyword/${store_id}_keyword.png`,
+                        convertToHttpUrl(data.raderchart), // 레이더 차트
+                        convertToHttpUrl(data.wordcloud),  // 워드클라우드
+                        convertToHttpUrl(data.distribution), // 분포도
+                        convertToHttpUrl(data.negative_ratio), // 부정 리뷰 비율
+                        convertToHttpUrl(data.keyword), // 키워드 차트
                     ];
 
                     const reportContainer = document.createElement('div');
