@@ -324,11 +324,12 @@
                     renderReviews(reviews);
 
                     // Firebase gs:// URL을 https:// 형식으로 변환하는 함수
-                    const convertToHttpUrl = (gsUrl) => {
-                        if (!gsUrl || !gsUrl.startsWith("gs://")) {
-                            return "https://via.placeholder.com/150"; // 기본 이미지 설정
+                    const convertToHttpUrl = (url) => {
+                        if (!url) return "https://via.placeholder.com/150"; // 값이 없으면 기본 이미지
+                        if (url.startsWith("gs://")) {
+                            return url.replace("gs://", "https://storage.googleapis.com/");
                         }
-                        return gsUrl.replace("gs://", "https://storage.googleapis.com/");
+                        return url; // 이미 변환된 URL은 그대로 사용
                     };
 
 
