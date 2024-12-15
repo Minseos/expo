@@ -55,22 +55,28 @@ def get_markers():
             LEFT JOIN analysis a ON s.store_id = a.store_id
         """
         print("Executing query...")
-        cursor.execute(query)
+        cursor.execute(query, (DEFAULT_MENU_PHOTO,))
         results = cursor.fetchall()
         print(f"Query executed successfully. Results: {results}")
 
+        # Convert Firebase GS URLs to HTTP URLs
         for result in results:
-            result['menu_photo'] = convert_gs_to_http(result['menu_photo'])
+            if 'menu_photo' in result:
+                result['menu_photo'] = convert_gs_to_http(result['menu_photo'])
 
         return jsonify(results)
+    except mysql.connector.Error as db_err:
+        print(f"MySQL Error: {str(db_err)}")
+        return jsonify({"error": "MySQL 오류가 발생했습니다.", "details": str(db_err)}), 500
     except Exception as e:
         print(f"Error in /markers: {str(e)}")
-        return jsonify({"error": "MySQL에서 문제가 발생했습니다."}), 500
+        return jsonify({"error": "서버에서 문제가 발생했습니다.", "details": str(e)}), 500
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
+
 
 
 # reviews.html 파일 렌더링을 위한 라우트 추가
